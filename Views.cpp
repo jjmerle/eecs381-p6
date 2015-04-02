@@ -1,71 +1,102 @@
 #include "Views.h"
 #include "Model.h"
+#include "Navigation.h"
 #include "Utility.h"
+#include <algorithm>
 #include <cmath>
 #include <iomanip>
 #include <iostream>
+#include <map>
 #include <memory>
 #include <string>
 #include <vector>
 using std::cout;
 using std::endl;
+using std::fill;
+using std::for_each;
+using std::map;
 using std::setw;
 using std::pair;
 using std::shared_ptr;
 using std::string;
 using std::vector;
 
-using SailingViewInfo = SailingView::SailingViewInfo;
-
-
 // ************************************** //
 // ***** SailingView Implementation ***** //
 // ************************************** //
-
-void SailingView::update(const string& name, Point) {
-    shared_ptr<Ship> ship_ptr = Model::get_instance().get_ship_ptr(name);
-    SailingViewInfo& data_for_ship = ship_sailing_data[name];
-    data_for_ship.fuel = Model::get_instance().get_fuel_from_ship(ship_ptr);
-    data_for_ship.course = Model::get_instance().get_course_from_ship(ship_ptr);
-    data_for_ship.speed = Model::get_instance().get_speed_from_ship(ship_ptr);
-}
-
 void SailingView::draw()  {
     cout << "----- Sailing Data -----" << endl;
+    cout << setw(10) << "Ship" << setw(10) << "Fuel" << setw(10) << "Course" << setw(10) << "Speed" << endl;
     for_each(ship_sailing_data.begin(), ship_sailing_data.end(),
              [](const pair<string, SailingViewInfo>& name_sail_data_pair) {
-                 cout << name_sail_data_pair.first << setw(10)
-                 << name_sail_data_pair.second.fuel << setw(10)
-                 << name_sail_data_pair.second.course << setw(10)
-                 << name_sail_data_pair.second.speed << endl;
+                 cout << setw(10)
+                    << name_sail_data_pair.first <<         setw(10)
+                    << name_sail_data_pair.second.fuel <<   setw(10)
+                    << name_sail_data_pair.second.course << setw(10)
+                    << name_sail_data_pair.second.speed <<  endl;
              });
 }
+
+// Update the Sim_object in the View with 'name' == name
+void SailingView::update_location(const string& name, Point location) {
+    if(Model::get_instance().is_ship_present(name) && ship_sailing_data.find(name) == ship_sailing_data.end()) {
+        SailingViewInfo sail_data;
+        ship_sailing_data[name] = sail_data;
+    }
+
+}
+
+// Update ship fuel
+void SailingView::update_fuel(const string& name, double fuel_) {
+    ship_sailing_data[name].fuel = fuel_;
+}
+
+// Update ship speed
+void SailingView::update_course_and_speed(const string& name, double course_, double speed_) {
+    SailingViewInfo& sailing_data = ship_sailing_data[name];
+    sailing_data.course = course_;
+    sailing_data.speed = speed_;
+}
+
+// Update ship afloat state
+void SailingView::update_remove(const string& name) {
+    ship_sailing_data.erase(name);
+}
+
 
 // ************************************** //
 // ***** GraphicView Implementation ***** //
 // ************************************** //
-
-GraphicView::GraphicView(Point origin_, double size_, double scale_) :
-    View(), origin(origin_), size(size_), scale(scale_) {
-    cout << "GraphicView constructed" << endl;
-}
-
-GraphicView::~GraphicView() {
-    cout << "GraphicView destructed" << endl;
-}
+const int size_default_c = 25; // TODO - Remove or put lower
+const double scale_default_c = 2;
+const Point point_default_c(-10, -10);
+const string empty_space_c = ". ";
+GraphicView::GraphicView(double size_, double scale_, Point origin_) :
+    View(), size(size_), scale(scale_), origin(origin_) { }
 
 // Save the supplied name and location for future use in a draw() call
 // If the name is already present,the new location replaces the previous one.
-void GraphicView::update(const string& name, Point location) {
+void GraphicView::update_location(const string& name, Point location) {
     object_locations[name] = location;
 }
 
 // Remove the name and its location; no error if the name is not present.
 void GraphicView::update_remove(const string& name) {
-    auto location_it = object_locations.find(name);
-    if(location_it != object_locations.end()) {
-        object_locations.erase(location_it);
-    }
+    object_locations.erase(name);
+}
+
+// Protected Functions
+// *** Fat Interface Functions ** //
+// Clear the map of Points
+void GraphicView::clear() {
+    object_locations.clear();
+}
+
+// modify the display parameters
+void GraphicView::set_defaults() {
+    size = size_default_c;
+    scale = scale_default_c;
+    origin = point_default_c;
 }
 
 /* *** Use this function to calculate the subscripts for the cell. */
@@ -94,26 +125,23 @@ bool GraphicView::get_subscripts(int &ix, int &iy, Point location)
         return true;
 }
 
+const map<string, Point>& GraphicView::get_object_locations() {
+    return object_locations;
+}
+
 
 // ********************************** //
 // ***** MapView Implementation ***** //
 // ********************************** //
-static int size_default_c = 25;
-static double mapview_scale_default_c = 2;
-static Point mapview_point_default_c(-10, -10);
-static string empty_space_c = ". ";
-
 // default constructor sets the default size, scale, and origin, outputs constructor message
-MapView::MapView() : GraphicView(mapview_point_default_c, size_default_c, mapview_scale_default_c) {
-    cout << "MapView constructed" << endl;
-}
-
-MapView::~MapView() { // outputs destructor message
-    cout << "MapView destructed" << endl;
-}
+MapView::MapView() : GraphicView(size_default_c, scale_default_c, point_default_c) { }
 
 // prints out the current map
 void MapView::draw() {
+    Point origin = get_origin();
+    int size = get_size();
+    double scale = get_scale();
+    const map<string, Point>& object_locations = get_object_locations();
     cout << "Display size: " <<  size << ", scale: " << scale << ", origin: " << origin << endl;
     vector< vector<string> > matrix(size, vector<string>(size, empty_space_c));
     
@@ -121,7 +149,7 @@ void MapView::draw() {
     // Mark the Matrix with Object Locations
     for(auto pair : object_locations) {
         int x, y;
-        if(get_subscripts(x, y, pair.second)) {
+        if(GraphicView::get_subscripts(x, y, pair.second)) {
             matrix[size-y-1][x] = (matrix[size-y-1][x] == empty_space_c) ?
             pair.first.substr(0, 2) : "* ";
         } else {
@@ -165,39 +193,33 @@ void MapView::draw() {
     cout.precision(2); // reset precision
 }
 
-// Discard the saved information - drawing will show only a empty pattern
 void MapView::clear() {
-    object_locations.clear();
+    GraphicView::clear();
 }
 
-// modify the display parameters
-// if the size is out of bounds will throw Error("New map size is too big!")
-// or Error("New map size is too small!")
-void GraphicView::set_size(int size_) {
+void MapView::set_size(int size_) {
     if(size_ > 30)
         throw Error("New map size is too big!");
     if(size_ <= 6)
         throw Error("New map size is too small!");
-    size = size_;
+    GraphicView::set_size(size_);
 }
 
-// If scale is not postive, will throw Error("New map scale must be positive!");
+
 void MapView::set_scale(double scale_) {
     if(scale_ <= 0.0)
         throw Error("New map scale must be positive!");
-    scale = scale_;
+    GraphicView::set_scale(scale_);
 }
 
 // any values are legal for the origin
 void MapView::set_origin(Point origin_) {
-    origin = origin_;
+    GraphicView::set_origin(origin_);
 }
 
 // set the parameters to the default values
 void MapView::set_defaults() {
-    size = size_default_c;
-    scale = mapview_scale_default_c;
-    origin = mapview_point_default_c;
+    GraphicView::set_defaults();
 }
 
 // ************************************* //
@@ -205,15 +227,89 @@ void MapView::set_defaults() {
 // ************************************* //
 
 // default constructor sets the default size, scale, and origin, outputs constructor message
-BridgeView::BridgeView() : GraphicView(-90.0, size_default_c, 10.0) {
-    cout << "BridgeView constructed" << endl;
-}
-
-BridgeView::~BridgeView() { // outputs destructor message
-    cout << "BridgeView destructed" << endl;
-}
+BridgeView::BridgeView(string name_) : GraphicView(19, 10, -90.0), name(name_), is_afloat(true) { }
 
 // prints out the current map
 void BridgeView::draw() {
+    const map<string, Point>& object_locations = get_object_locations();
+    cout << "Bridge view from " << name;
+    if(is_afloat) {
+        cout << " position " << ownship_location << " heading " << heading;
+    } else {
+        cout << " sunk at " << ownship_location;
+    }
+    cout << endl;
+    
+    vector< vector<string> > matrix(3);
+    
+    if(is_afloat) {
+        fill(matrix.begin(), matrix.end(), vector<string>(19, empty_space_c));
+        Point ownship_location = object_locations.find(name)->second;
+        for(const pair<string, Point>& name_position_pair : object_locations) {
+            if(name_position_pair.first != name) {
+                Point othership_location = name_position_pair.second;
+                Compass_position compass_pos(ownship_location, othership_location);
+                if(compass_pos.range > 20 || compass_pos.range < 0.005) {
+                    continue;
+                }
+                double bow_angle = compass_pos.bearing - heading;
+                if(bow_angle < -180.0) {
+                    bow_angle += 360.0;
+                } else if(bow_angle > 180.0) {
+                    bow_angle -= 360.0;
+                }
+                if(bow_angle < -90.0 || bow_angle > 100.0) {
+                    continue;
+                }
+                int x, y;
+                if(get_subscripts(x, y, Point(bow_angle, 0))) {
+                    matrix[2][x] = (matrix[2][x] == empty_space_c) ?
+                    name_position_pair.first.substr(0, 2) : "**";
+                } else {
+                    cout << "x " << x << " y " << y << endl;
+                }
+                
+            }
+        }
+    } else {
+        fill(matrix.begin(), matrix.end(), vector<string>(19, "w-"));
+    }
 
+    
+    for(auto& row : matrix) {
+        cout << setw(7);
+        for(auto& cell : row) {
+            cout << cell;
+        }
+        cout << endl;
+    }
+    
+    cout << setw(6);
+    for(int i = -90; i <= 90; i += 30) {
+        cout << i << setw(6);
+    }
+    cout << endl;
+
+}
+
+// Update the location of a name in the View
+void BridgeView::update_location(const string& name_, Point location) {
+    GraphicView::update_location(name_, location);
+    if(name == name_) {
+        ownship_location = location;
+    }
+}
+
+void BridgeView::update_remove(const string& name_) {
+    GraphicView::update_remove(name_);
+    if(name == name_) {
+        is_afloat = false;
+    }
+}
+
+// Update ship heading
+void BridgeView::update_course_and_speed(const string& name_, double course_, double) {
+    if(name == name_) {
+        heading = course_;
+    }
 }

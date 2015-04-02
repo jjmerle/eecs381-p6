@@ -13,15 +13,11 @@ class Island : public Sim_object {
 public:
 	// initialize then output constructor message
 	Island (const std::string& name_, Point position_, double fuel_ = 0., double production_rate_ = 0.);
-    
     // forbid  copy/move, construction/assignment
     Island(Island& other)=delete;
     Island(Island&& other)=delete;
     Island& operator=(Island& rhs)=delete;
     Island& operator=(Island&& rhs)=delete;
-    
-	// output destructor message
-	~Island();
 		
 	// Return whichever is less, the request or the amount left,
 	// update the amount on hand accordingly, and output the amount supplied.

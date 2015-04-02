@@ -9,18 +9,13 @@ using std::endl;
 using std::shared_ptr;
 using std::string;
 
+const char* const tanker_no_cargo_destinations_c = " now has no cargo destinations";
+
 // initialize, the output constructor message
 Tanker::Tanker(const std::string& name_, Point position_) :
     Ship(name_, position_, 100, 10., 2., 0), cargo(0), cargo_capacity(1000),
     cargo_state(Cargo_State_e::NO_CARGO_DESTINATIONS), load_destination(nullptr),
-    unload_destination(nullptr) {
-        cout << "Tanker " << get_name() << " constructed" << endl;
-    }
-
-// output destructor message
-Tanker::~Tanker() {
-    cout << "Tanker " << get_name() << " destructed" << endl;
-}
+    unload_destination(nullptr) { }
 
 // This class overrides these Ship functions so that it can check if this Tanker has assigned cargo destinations.
 // if so, throw an Error("Tanker has cargo destinations!"); otherwise, simply call the Ship functions.
@@ -172,6 +167,7 @@ void Tanker::describe() const {
             cout << ", moving to unloading destination";
             break;
         default:
+            cout << default_switch_error_c << endl;
             break;
     };
     cout << endl;

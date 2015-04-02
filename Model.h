@@ -35,9 +35,6 @@ public:
     Model(Model&& other)=delete;
     Model& operator=(Model& rhs)=delete;
     Model& operator=(Model&& rhs)=delete;
-	
-	// destroy all objects, output destructor message
-	~Model();
 
 	// return the current time
 	int get_time() {return time;}
@@ -66,25 +63,26 @@ public:
 	/* View services */
 	// Attaching a View adds it to the container and causes it to be updated
     // with all current objects'location (or other state information.
-	void attach(View*);
+    void attach(std::shared_ptr<View>);
 	// Detach the View by discarding the supplied pointer from the container of Views
     // - no updates sent to it thereafter.
-	void detach(View*);
+    void detach(std::shared_ptr<View>);
+    // Iterates over all View* and calls draw()
+    void draw_views();
 	
     // notify the views about an object's location
 	void notify_location(const std::string& name, Point location);
 	// notify the views that an object is now gone
 	void notify_gone(const std::string& name);
+    // Update ship fuel
+    void notify_fuel(const std::string& name, double fuel);
+    // Update ship speed
+    void notify_course_and_speed(const std::string& name, double course, double speed);
+    
     // remove the Ship from the containers.
     void remove_ship(std::shared_ptr<Ship> ship_ptr);
-    // *** Readers *** //
-    double get_fuel_from_ship(std::shared_ptr<Ship> ship_ptr);
-    double get_course_from_ship(std::shared_ptr<Ship> ship_ptr);
-    double get_speed_from_ship(std::shared_ptr<Ship> ship_ptr);
     // Return a set of Island location Points
     std::vector<std::shared_ptr<Island>> get_islands();
-    // Return an Island from the location given - if none exists, return nullptr
-    std::shared_ptr<Island> get_island_from_location(Point location);
 private:
     // create the initial objects, output constructor message
     Model();
@@ -97,7 +95,7 @@ private:
     std::set<std::shared_ptr<Sim_object>, Name_Comparator> all_objects;
     std::map<std::string, std::shared_ptr<Ship>> ships;
     std::map<std::string, std::shared_ptr<Island>> islands;
-    std::list<View*> view_list;
+    std::list<std::shared_ptr<View>> view_list;
     
     void create_and_insert_island(const std::string& name_, Point position_,
                               double fuel_ = 0., double production_rate_ = 0.);

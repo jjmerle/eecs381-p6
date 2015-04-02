@@ -7,13 +7,7 @@ using std::shared_ptr;
 
 // initialize, then output constructor message
 Cruiser::Cruiser(const std::string& name_, Point position_) :
-    Warship(name_, position_, 1000, 20, 10, 6, 3, 15)
-    { cout << "Cruiser " << name_ << " constructed" << endl; }
-
-// output destructor message
-Cruiser::~Cruiser() {
-    cout << "Cruiser " << get_name() << " destructed" << endl;
-}
+    Warship(name_, position_, 1000, 20, 10, 6, 3, 15) {}
 
 void Cruiser::update() {
     Warship::update();

@@ -18,12 +18,6 @@
 
 class Cruise_ship : public Ship {
 public:
-    // Enums for current Cruise state
-    enum class Cruise_State_e {
-        NOT_CRUISING, CRUISING_TO_DESTINATION, REFUELING,
-        DOCKED_SIGHTSEEING, LEAVING_ISLAND
-    };
-    
     // Construct with name and Position
     Cruise_ship(const std::string& name_, Point position_);
     
@@ -44,13 +38,18 @@ public:
     
     
 private:
+    // Enums for current Cruise state
+    enum class Cruise_State_e {
+        NOT_CRUISING, CRUISING_TO_DESTINATION, REFUELING,
+        DOCKED_SIGHTSEEING, LEAVING_ISLAND
+    };
+    
     int cruise_speed;
     Cruise_State_e cruise_state;
     std::shared_ptr<Island> first_destination;
     std::shared_ptr<Island> cruise_destination;
     std::vector<std::shared_ptr<Island>> islands;
 
-    
     // Class helper functions
     void cancel_cruise();
 };

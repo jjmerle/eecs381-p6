@@ -23,27 +23,16 @@ class Island;
 
 class Ship : public Sim_object, public std::enable_shared_from_this<Ship> {
 public:
-    enum class Ship_State_e {
-        DOCKED, STOPPED, MOVING_TO_POSITION, DEAD_IN_THE_WATER,
-        MOVING_ON_COURSE, SUNK
-    };
-    
     // disallow copy/move, construction or assignment
     Ship(Ship& other)=delete;
     Ship(Ship&& other)=delete;
     Ship& operator=(Ship& rhs)=delete;
     Ship& operator=(Ship&& rhs)=delete;
-		
-	// virtual destructor
-	virtual ~Ship();
 	
 	/*** Readers ***/
 	// return the current position
 	Point get_location() const override {return track_base.get_position();}
-    double get_fuel() { return fuel; }
-    double get_course() { return track_base.get_course(); }
-    double get_speed() { return track_base.get_speed(); }
-	
+
 	// Return true if ship can move (it is not dead in the water or in the process or sinking);
 	bool can_move() const;
 	
@@ -65,8 +54,16 @@ public:
 	void update() override;
 	// output a description of current state to cout
 	void describe() const override;
-	
+
+    /*** Tell Model to update Views ***/
+    // Broadcast all state to Views
 	void broadcast_current_state() override;
+    // Broadcast current location to Views
+    void broadcast_current_location();
+    // Broadcast current fuel to Views
+    void broadcast_current_fuel();
+    // Broadcast current course and speed to Views
+    void broadcast_current_course_and_speed();
 	
 	/*** Command functions ***/
 	// Start moving to a destination position at a speed
@@ -115,6 +112,11 @@ protected:
     std::shared_ptr<Island> get_docked_Island() const;
 
 private:
+    enum class Ship_State_e {
+        DOCKED, STOPPED, MOVING_TO_POSITION, DEAD_IN_THE_WATER,
+        MOVING_ON_COURSE, SUNK
+    };
+
 	double fuel;						// Current amount of fuel
 	double fuel_consumption;			// tons/nm required
     double fuel_capacity;

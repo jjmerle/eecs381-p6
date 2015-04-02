@@ -10,12 +10,6 @@ abstract base class, so concrete classes derived from Warship must be declared.
 
 class Warship : public Ship {
 public:
-    enum class Attack_State_e { ATTACKING, NOTATTACKING };
-
-	// a pure virtual function to mark this as an abstract class, 
-	// but defined anyway to output destructor message
-	virtual ~Warship();
-	
 	// perform warship-specific behavior
 	void update() override;
 
@@ -52,6 +46,8 @@ protected:
     std::shared_ptr<Ship> get_target() const;
     
 private:
+    enum class Attack_State_e { ATTACKING, NOTATTACKING };
+    
     int firepower;
     double maximum_range;
     Attack_State_e attack_state;

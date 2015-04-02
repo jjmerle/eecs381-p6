@@ -20,7 +20,7 @@ public:
 	Track_base();
 	Track_base(Point in_position);
 	Track_base(Point in_position, Course_speed in_course_speed, double in_altitude = 0.);
-	virtual ~Track_base();
+    virtual ~Track_base() { };
 	
 	// Readers
 	Point get_position() const 

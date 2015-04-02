@@ -27,17 +27,33 @@ using the new settings.
 
 class View {
 public:
-    View();
-    virtual ~View();
+    View() {};
+    // disallow copy/move construction or assignment
+    View(View& other)=delete;
+    View(View&& other)=delete;
+    View& operator=(View& rhs)=delete;
+    View& operator=(View&& rhs)=delete;
     
-	// Update the Sim_object in the View with 'name' == name
-	virtual void update(const std::string& name, Point) = 0;
-	
-	// Remove the name and its location; no error if the name is not present.
-	virtual void update_remove(const std::string& name) = 0;
-	
-	// prints out the current map
-	virtual void draw() = 0;
+    // prints out the current map
+    virtual void draw() = 0;
+    
+    // Remove the name and its location; no error if the name is not present.
+    virtual void update_remove(const std::string& name_) = 0;
+    
+    // Update the Sim_object in the View with 'name' == name
+    virtual void update_location(const std::string& name, Point location) = 0;
+    
+    // *** Fat Interface *** //
+    // Default behavior is to do nothing //
+    
+    // Update ship fuel
+    virtual void update_fuel(const std::string& name, double fuel_) { };
+    
+    // Update ship heading
+    virtual void update_heading(const std::string& name_, double heading_) { };
+    
+    // Update ship speed
+    virtual void update_course_and_speed(const std::string& name, double course_, double speed_) { };
 };
 
 #endif

@@ -61,13 +61,6 @@ Model::Model() : time(0) {
     create_and_insert_ship("Ajax", "Cruiser", Point (15, 15));
     create_and_insert_ship("Xerxes", "Cruiser", Point (25, 25));
     create_and_insert_ship("Valdez", "Tanker", Point (30, 30));
-
-	cout << "Model constructed" << endl;
-}
-
-// destroy all objects, output destructor message
-Model::~Model() {
-    cout << "Model destructed" << endl;
 }
 
 // is name already in use for either ship or island?
@@ -131,28 +124,46 @@ void Model::update() {
 /* View services */
 // Attaching a View adds it to the container and causes it to be updated
 // with all current objects'location (or other state information.
-void Model::attach(View* view) {
+void Model::attach(shared_ptr<View> view) {
     view_list.push_back(view);
     for_each(all_objects.begin(), all_objects.end(), mem_fn(&Sim_object::broadcast_current_state));
 }
 
 // Detach the View by discarding the supplied pointer from the container of Views
 // - no updates sent to it thereafter.
-void Model::detach(View* view) {
+void Model::detach(shared_ptr<View> view) {
     view_list.remove(view);
 }
 
+// Draw all Views in the view_list
+void Model::draw_views() {
+    for_each(view_list.begin(), view_list.end(), mem_fn(&View::draw));
+}
+
 // notify the views about an object's location
-void Model::notify_location(const std::string& name, Point location) {
+void Model::notify_location(const string& name, Point location) {
     for_each(view_list.begin(), view_list.end(),
-             [&name, &location](View* vp) { vp->update(name, location); });
+             [&name, &location](shared_ptr<View> vp)
+                { vp->update_location(name, location); });
     
 }
 
 // notify the views that an object is now gone
 void Model::notify_gone(const std::string& name) {
     for_each(view_list.begin(), view_list.end(),
-            [&name](View* vp) { vp->update_remove(name); });
+            [&name](shared_ptr<View> vp) { vp->update_remove(name); });
+}
+
+// Update ship fuel
+void Model::notify_fuel(const std::string& name, double fuel) {
+    for_each(view_list.begin(), view_list.end(),
+             [&name, &fuel](shared_ptr<View> vp) { vp->update_fuel(name, fuel); });
+}
+
+// Update ship speed
+void Model::notify_course_and_speed(const std::string& name, double course, double speed) {
+    for_each(view_list.begin(), view_list.end(),
+             [&name, &course, &speed](shared_ptr<View> vp) { vp->update_course_and_speed(name, course, speed); });
 }
 
 // remove the Ship from the containers.
@@ -161,10 +172,6 @@ void Model::remove_ship(shared_ptr<Ship> ship_ptr) {
     ships.erase(ship_ptr->get_name());
 }
 
-double Model::get_fuel_from_ship(shared_ptr<Ship> ship_ptr) { return ship_ptr->get_fuel(); }
-double Model::get_course_from_ship(shared_ptr<Ship> ship_ptr) { return ship_ptr->get_course(); }
-double Model::get_speed_from_ship(shared_ptr<Ship> ship_ptr) { return ship_ptr->get_speed(); }
-
 // Return a set of Island location Points
 vector<shared_ptr<Island>> Model::get_islands() {
     vector<shared_ptr<Island>> island_locations;
@@ -172,13 +179,4 @@ vector<shared_ptr<Island>> Model::get_islands() {
         island_locations.push_back(island_pr.second);
     }
     return island_locations;
-}
-
-shared_ptr<Island> Model::get_island_from_location(Point location) {
-    for(island_pair island_pr : islands) {
-        if(island_pr.second->get_location() == location) {
-            return island_pr.second;
-        }
-    }
-    return nullptr;
 }

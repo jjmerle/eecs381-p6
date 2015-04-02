@@ -13,15 +13,7 @@ Warship::Warship(const std::string& name_, Point position_, double fuel_capacity
     int firepower_, double maximum_range_) :
     Ship(name_, position_, fuel_capacity_, maximum_speed_, fuel_consumption_, resistance_),
     firepower(firepower_), maximum_range(maximum_range_),
-    attack_state(Attack_State_e::NOTATTACKING) {
-        cout << "Warship " << get_name() << " constructed" << endl;
-    }
-
-// a pure virtual function to mark this as an abstract class,
-// but defined anyway to output destructor message
-Warship::~Warship() {
-    cout << "Warship " << get_name() << " destructed" << endl;
-}
+    attack_state(Attack_State_e::NOTATTACKING) { }
 
 // perform warship-specific behavior
 void Warship::update() {
@@ -64,7 +56,7 @@ void Warship::attack(shared_ptr<Ship> target_ptr_) {
 
 // will throw Error("Was not attacking!") if not Attacking
 void Warship::stop_attack() {
-    if(target.expired()) {
+    if(!is_attacking()) {
         throw Error("Was not attacking!");
     }
     cout << get_name() << " stopping attack" << endl;
@@ -87,7 +79,7 @@ void Warship::describe() const {
 
 // return true if this Warship is in the attacking state
 bool Warship::is_attacking() const {
-    return !target.expired();
+    return attack_state == Attack_State_e::ATTACKING;
 }
 
 // fire at the current target

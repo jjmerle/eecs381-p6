@@ -5,11 +5,14 @@
 #include <memory>
 #include <iostream>
 #include <iomanip>
-#include <cassert>
 using std::cout;
 using std::endl;
 using std::shared_ptr;
 using std::setprecision;
+
+const char* const ship_move_error_c = "Ship cannot move!";
+const char* const ship_speed_error_c = "Ship cannot go that fast!";
+const char* const ship_attack_error_c = "Cannot attack!";
 
 // initialize, then output constructor message
 Ship::Ship(const std::string& name_, Point position_, double fuel_capacity_,
@@ -17,22 +20,7 @@ Ship::Ship(const std::string& name_, Point position_, double fuel_capacity_,
     Sim_object(name_), fuel(fuel_capacity_), fuel_consumption(fuel_consumption_),
     fuel_capacity(fuel_capacity_), maximum_speed(maximum_speed_),
     resistance(resistance_), ship_state(Ship_State_e::STOPPED), docked_island(nullptr),
-    track_base(position_) {
-    cout << "Ship "  << get_name() << " constructed" << endl;
-}
-
-/*
-Define the destructor function even if it was declared as a pure virtual function.
-This seems odd, because pure virtual functions are usually not defined in the class
-that declares them. But this is often done as a way to make a class abstract, 
-if there is no other virtual function that makes sense to mark as pure. Here we
-are defining it just to get the destructor message output.
-*/
-
-Ship::~Ship()
-{
-	cout << "Ship "  << get_name() << " destructed" << endl;
-}
+    track_base(position_) { }
 
 // Return true if ship can move (it is not dead in the water or in the process or sinking);
 bool Ship::can_move() const {
@@ -62,6 +50,29 @@ bool Ship::can_dock(shared_ptr<Island> island_ptr) const {
             cartesian_distance(get_location(), island_ptr->get_location()) <= .1;
 }
 
+
+// Broadcast all state to Views
+void Ship::broadcast_current_state() {
+    Model::get_instance().notify_location(get_name(), get_location());
+    Model::get_instance().notify_fuel(get_name(), fuel);
+    Model::get_instance().notify_course_and_speed(get_name(), track_base.get_course(), track_base.get_speed());
+}
+
+// Broadcast current location to Views
+void Ship::broadcast_current_location() {
+    Model::get_instance().notify_location(get_name(), get_location());
+}
+
+// Broadcast current fuel to Views
+void Ship::broadcast_current_fuel() {
+    Model::get_instance().notify_fuel(get_name(), fuel);
+}
+
+// Broadcast current course and speed to Views
+void Ship::broadcast_current_course_and_speed() {
+    Model::get_instance().notify_course_and_speed(get_name(), track_base.get_course(), track_base.get_speed());
+}
+
 /*** Interface to derived classes ***/
 // Update the state of the Ship
 void Ship::update() {
@@ -72,7 +83,7 @@ void Ship::update() {
             case Ship_State_e::MOVING_TO_POSITION:
                 calculate_movement();
                 cout << " now at " << get_location();
-                Model::get_instance().notify_location(get_name(), get_location());
+                broadcast_current_state(); // all state must be updated
                 break;
             case Ship_State_e::STOPPED:
                 cout << " stopped at " << track_base.get_position();
@@ -84,6 +95,7 @@ void Ship::update() {
                 cout << " dead in the water at " << track_base.get_position();
                 break;
             default:
+                cout << default_switch_error_c << endl;
                 break;
         };
     } else {
@@ -116,14 +128,11 @@ void Ship::describe() const {
                 cout << "Dead in the water";
                 break;
             default:
+                cout << default_switch_error_c << endl;
                 break;
         };
     }
     cout << endl;
-}
-
-void Ship::broadcast_current_state() {
-    Model::get_instance().notify_location(get_name(), track_base.get_position());
 }
 
 /*** Command functions ***/
@@ -143,9 +152,12 @@ void Ship::set_destination_position_and_speed(Point destination_position, double
     }
     destination = destination_position;
     Compass_vector compass_vec(get_location(), destination);
+    
     track_base.set_speed(speed);
     track_base.set_course(compass_vec.direction);
     ship_state = Ship_State_e::MOVING_TO_POSITION;
+    
+    broadcast_current_course_and_speed();
     cout << get_name() << " will sail on " << track_base.get_course_speed() << " to " << destination << endl;
 }
 
@@ -165,6 +177,8 @@ void Ship::set_course_and_speed(double course, double speed) {
     track_base.set_course(course);
     track_base.set_speed(speed);
     ship_state = Ship_State_e::MOVING_ON_COURSE;
+    
+    broadcast_current_course_and_speed();
     cout << get_name() << " will sail on " << track_base.get_course_speed() << endl;
 }
 
@@ -176,20 +190,21 @@ void Ship::stop() {
     }
     track_base.set_speed(0);
     ship_state = Ship_State_e::STOPPED;
+    broadcast_current_course_and_speed();
     cout << get_name() << " stopping at " << get_location() << endl;
 }
 
 // dock at an Island - set our position = Island's position, go into Docked state
 // may throw Error("Can't dock!");
 void Ship::dock(shared_ptr<Island> island_ptr) {
-    assert(island_ptr);
     if(ship_state != Ship_State_e::STOPPED ||
        cartesian_distance(get_location(), island_ptr->get_location()) > 0.1) {
         throw Error("Can't dock!");
     }
     track_base.set_position(island_ptr->get_location());
     docked_island = island_ptr;
-    Model::get_instance().notify_location(get_name(), get_location());
+    
+    broadcast_current_location();
     ship_state = Ship_State_e::DOCKED;
     cout << get_name() << " docked at " << island_ptr->get_name() << endl;
 }
@@ -206,6 +221,7 @@ void Ship::refuel() {
             fuel += island->provide_fuel(required_fuel);
             cout << get_name() << " now has " << fuel << " tons of fuel" << endl;
         }
+        broadcast_current_fuel();
     } else {
         throw Error("Must be docked!");
     }
@@ -241,7 +257,7 @@ void Ship::receive_hit(int hit_force, shared_ptr<Ship> attacker_ptr) {
     if(resistance < 0) {
         ship_state = Ship_State_e::SUNK;
         track_base.set_speed(0.);
-        cout << " sunk" << endl;
+        cout << get_name() << " sunk" << endl;
         Model::get_instance().notify_gone(get_name());
         Model::get_instance().remove_ship(shared_from_this());
     }
