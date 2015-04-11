@@ -14,5 +14,7 @@ private:
 
 // Error message for reaching 'default' in switch statements
 extern const char* const default_switch_error_c;
+extern const char* const empty_map_space_c;
+extern const char* const crowded_map_space_c;
 
 #endif

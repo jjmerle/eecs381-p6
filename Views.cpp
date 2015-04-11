@@ -25,7 +25,6 @@ const int sailng_data_set_width_c = 10;
 const int size_default_c = 25;
 const double scale_default_c = 2;
 const Point origin_default_c(-10, -10);
-const string empty_space_c = ". ";
 
 // ************************************** //
 // ***** SailingView Implementation ***** //
@@ -81,8 +80,19 @@ void GraphicView::draw() {
     
     print_map_heading();
     
-    vector<vector<string>> matrix = get_draw_info();
+    vector<vector<string>> matrix;
+    for(int i=0; i<get_second_dimension_size(); ++i) { // get_size() is inlined
+        matrix.push_back(vector<string>(get_first_dimension_size(), get_empty_space()));
+    }
     
+    map<string, Point> points_to_plot = get_draw_info();
+    
+    for(const auto& name_point_pair : points_to_plot) {
+        matrix[get_second_dimension_size()-name_point_pair.second.y-1][name_point_pair.second.x] =
+        (matrix[get_second_dimension_size()-name_point_pair.second.y-1][name_point_pair.second.x] == get_empty_space()) ?
+        name_point_pair.first.substr(0, 2) : get_crowded_space();
+    }
+
     // Output our Matrix
     int i = 0, y = ( (size-1) * scale) + origin.y;
     for(const auto& row : matrix) {
@@ -149,19 +159,18 @@ bool GraphicView::get_subscripts(int &ix, int &iy, Point location)
 // default constructor sets the default size, scale, and origin, outputs constructor message
 MapView::MapView() : GraphicView(size_default_c, scale_default_c, origin_default_c, true)  { }
 
-vector<vector<string>> MapView::get_draw_info() {
-    vector<vector<string>> matrix(get_size());
-    fill(matrix.begin(), matrix.end(), vector<string>(get_size(), empty_space_c));
+// Get x, y coordinates and name/points to map
+map<string, Point> MapView::get_draw_info() {
+    map<string, Point> points_to_plot;
     
     // Mark the Matrix with Object Locations
     for(const auto pair : object_locations) {
         int x, y;
         if(GraphicView::get_subscripts(x, y, pair.second)) {
-            matrix[get_size()-y-1][x] = (matrix[get_size()-y-1][x] == empty_space_c) ?
-            pair.first.substr(0, 2) : "* ";
+            points_to_plot[pair.first] = Point(x, y);
         }
     }
-    return matrix;
+    return points_to_plot;
 }
 
 // Save the supplied name and location for future use in a draw() call
@@ -209,7 +218,7 @@ void MapView::clear() {
 }
 
 void MapView::print_map_heading() {
-    cout << "Display size: " << get_size() << ", scale: " << get_scale() << ", origin: " << get_origin() << endl;
+    cout << "Display size: " << get_first_dimension_size() << ", scale: " << get_scale() << ", origin: " << get_origin() << endl;
     bool first_outside = false; // Bool to track if we have an Object outside of the Map
     int x, y;
     for(const auto pair : object_locations) {
@@ -235,10 +244,9 @@ void MapView::print_map_heading() {
 BridgeView::BridgeView(const string& name_) : GraphicView(19, 10, -90.0, false),name(name_), is_afloat(true) { }
 
 // prints out the current map
-vector<vector<string>> BridgeView::get_draw_info() {
-    vector<vector<string>> matrix(3);
+map<string, Point> BridgeView::get_draw_info() {
+    map<string, Point> points_to_plot;
     if(is_afloat) {
-        fill(matrix.begin(), matrix.end(), vector<string>(get_size(), empty_space_c));
         Point ownship_location = object_locations.find(name)->second;
         for(const pair<string, Point>& name_position_pair : object_locations) {
             if(name_position_pair.first != name) {
@@ -258,17 +266,12 @@ vector<vector<string>> BridgeView::get_draw_info() {
                 }
                 int x, y;
                 if(get_subscripts(x, y, Point(bow_angle, 0))) {
-                    matrix[2][x] = (matrix[2][x] == empty_space_c) ?
-                    name_position_pair.first.substr(0, 2) : "**";
-                } else {
-                    cout << "x " << x << " y " << y << endl;
+                    points_to_plot[name_position_pair.first] = Point(x, y);
                 }
             }
         }
-    } else {
-        fill(matrix.begin(), matrix.end(), vector<string>(get_size(), "w-"));
     }
-    return matrix;
+    return points_to_plot;
 }
 
 void BridgeView::print_map_heading() {
@@ -303,6 +306,11 @@ void BridgeView::update_course_and_speed(const string& name_, double course_, do
     }
 }
 
+// Get empty space from derived class
+const char* const BridgeView::get_empty_space() {
+    return (is_afloat) ? empty_map_space_c : "w-";
+}
+
 // ************************************* //
 // ***** ObjectView Implementation ***** //
 // ************************************* //
@@ -314,7 +322,7 @@ ObjectView::ObjectView(const string& name_) : GraphicView(size_default_c, scale_
 void ObjectView::update_location(const string& name_, Point location) {
     object_locations[name_] = location;
     if(name == name_) {
-        set_origin(Point(location.x - get_size(), location.y - get_size()));
+        set_origin(Point(location.x - get_first_dimension_size(), location.y - get_first_dimension_size()));
     }
 }
     
@@ -324,26 +332,23 @@ void ObjectView::update_remove(const string& name_) {
 }
     
 // Get x, y coordinates and name/points to map
-vector<vector<string>> ObjectView::get_draw_info() {
-    vector<vector<string>> matrix(get_size());
-    fill(matrix.begin(), matrix.end(), vector<string>(get_size(), empty_space_c));
-
+map<string, Point> ObjectView::get_draw_info() {
+    map<string, Point> points_to_plot;
     // Mark the Matrix with Object Locations
-    for(const auto pair : object_locations) {
+    for(const auto& pair : object_locations) {
         int x, y;
         if(GraphicView::get_subscripts(x, y, pair.second)) {
-            matrix[get_size()-y-1][x] = (matrix[get_size()-y-1][x] == empty_space_c) ?
-            pair.first.substr(0, 2) : "* ";
+            points_to_plot[pair.first] = Point(x, y);
         }
     }
-    return matrix;
+    return points_to_plot;
 }
 
 void ObjectView::print_map_heading() {
-    cout << "Display size: " << get_size() << ", scale: " << get_scale() << ", origin: " << get_origin() << endl;
+    cout << "Display size: " << get_first_dimension_size() << ", scale: " << get_scale() << ", origin: " << get_origin() << endl;
     bool first_outside = false; // Bool to track if we have an Object outside of the Map
     int x, y;
-    for(const auto pair : object_locations) {
+    for(const auto& pair : object_locations) {
         if(!GraphicView::get_subscripts(x, y, pair.second)) {
             if(!first_outside) {
                 first_outside = true;
