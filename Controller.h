@@ -13,6 +13,7 @@ class Island;
 class MapView;
 class SailingView;
 class BridgeView;
+class ObjectView;
 
 class Controller {
 public:	
@@ -26,6 +27,7 @@ private:
     std::shared_ptr<MapView> mapview_ptr;
     std::shared_ptr<SailingView> sailview_ptr;
     std::map<std::string, std::shared_ptr<BridgeView>> bridgeview_map;
+    std::map<std::string, std::shared_ptr<ObjectView>> objectview_map;
     std::map<std::string, void(Controller::*)(std::shared_ptr<Ship> ship_ptr)> ship_commands;
     std::map<std::string, void(Controller::*)()> mv_commands;
     
@@ -91,6 +93,11 @@ private:
     void open_bridge_view();
     /* Close a bridge view for ship with name shipname */
     void close_bridge_view();
+    /* - create and open a object view that shows the view from birds-eye of object <objectname>. Errors in
+     order of checks: no object of that name; objectview is already open for that object.*/
+    void open_object_view();
+    /* Close a objectview for object with name objectname */
+    void close_object_view();
 };
 
 #endif

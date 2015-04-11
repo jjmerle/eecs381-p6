@@ -13,6 +13,8 @@ class Sim_object {
 public:
     // *** define the constructor in Sim_object.cpp to output the supplied message
 	Sim_object(const std::string& name_);
+    
+    virtual ~Sim_object() {};
 	
 	const std::string& get_name() const
 		{return name;}

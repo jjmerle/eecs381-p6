@@ -5,6 +5,7 @@
 #include "Tanker.h"
 #include <memory>
 using std::make_shared;
+using std::string;
 using std::shared_ptr;
 
 class Ship;
@@ -14,7 +15,7 @@ class Ship;
  */
 
 // may throw Error("Trying to create ship of unknown type!")
-shared_ptr<Ship> create_ship(const std::string& name, const std::string& type, Point initial_position) {
+shared_ptr<Ship> create_ship(const string& name, const string& type, Point initial_position) {
     if(type == "Cruiser") {
         return make_shared<Cruiser>(name, initial_position);
     } else if(type == "Tanker") {

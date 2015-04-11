@@ -4,6 +4,7 @@
 #include "Geometry.h"
 #include <map>
 #include <string>
+#include <vector>
 
 class SailingView : public View {
 public:
@@ -36,17 +37,35 @@ private:
 
 class GraphicView : public View {
 public:
-    // Good place for shared functionality
-    // If shared base only has same member variables, NOT a reason to exist!
-    // Shared member variables are NOT a reason to have a common class
-    // Similar drawing, plotting
-    // Print out grids with objects in them. Tell me size and scale, and where you
-       // want objects (what where)
-    // GraphicView can call BridgeView
-    // Function in the base can call a function declared virtual in base to go to derived implementation
-        // gives you ability to ask for info from derived class
+    GraphicView(int size_, double scale_, Point origin, bool draw_y);
     
-    GraphicView(double size_, double scale_, Point origin_);
+    void draw() override;
+    
+protected:
+    // Calculate subscripts of Sim_object on the map
+    bool get_subscripts(int &ix, int &iy, Point location);
+    int get_size() { return size; }
+    double get_scale() { return scale; }
+    Point get_origin() { return origin; }
+    virtual void set_size(int size_) { size = size_; }
+    virtual void set_scale(double scale_) { scale = scale_; }
+    virtual void set_origin(Point origin_) { origin = origin_; }
+    
+private:
+    int size;			// current size of the display
+    double scale;		// distance per cell of the display
+    Point origin;		// coordinates of the lower-left-hand corner
+    bool draw_y_coordinates;
+    // Print the top of the map
+    virtual void print_map_heading() = 0;
+    // Get x, y coordinates and name/points to map
+    virtual std::vector<std::vector<std::string>> get_draw_info() = 0;
+};
+
+class MapView : public GraphicView {
+public:
+    // default constructor sets the default size, scale, and origin
+    MapView();
     
     // Update the location of a name in the View
     void update_location(const std::string& name_, Point location) override;
@@ -54,63 +73,33 @@ public:
     // Remove the name and its location; no error if the name is not present.
     void update_remove(const std::string& name) override;
     
-protected:
-    // *** Fat Interface Functions for subclasses ** //
-    // Clear the map of Points
-    void clear();
-    // modify the display parameters
-    // if the size is out of bounds will throw Error("New map size is too big!")
-    // or Error("New map size is too small!")
-    void set_size(int size_) { size = size_; }
-    void set_scale(double scale_) { scale = scale_; }
-    void set_origin(Point origin_) { origin = origin_; }
-    void set_defaults();
-    // Calculate subscripts of Sim_object on the map
-    bool get_subscripts(int &ix, int &iy, Point location); // Put equivalent (cut some out) - parameterized version of function?
-    const std::map<std::string, Point>& get_object_locations();
-    Point get_origin() { return origin; }
-    double get_scale() { return scale; }
-    int get_size() { return size; }
-    
-private:
-    int size;			// current size of the display
-    double scale;		// distance per cell of the display
-    Point origin;		// coordinates of the lower-left-hand corner
-
-    // Locations of all Sim_objects in the simulation
-    std::map<std::string, Point> object_locations;
-    
-};
-
-class MapView : public GraphicView {
-public:
-    // default constructor sets the default size, scale, and origin
-    MapView();
-
-    // prints out the current map
-    void draw() override;
-    
     // Discard the saved information - drawing will show only a empty pattern
     void clear();
     
-    void set_size(int size_);
+    void set_size(int size_) override;
     
     // If scale is not postive, will throw Error("New map scale must be positive!");
-    void set_scale(double scale_);
+    void set_scale(double scale_) override;
     
     // any values are legal for the origin
-    void set_origin(Point origin_);
+    void set_origin(Point origin_) override;
     
     // set the parameters to the default values
     void set_defaults();
+    
+    // Get x, y coordinates and name/points to map
+    std::vector<std::vector<std::string>> get_draw_info() override;
+private:
+    // Print the top of the map
+    void print_map_heading() override;
+    
+    // Locations of all Sim_objects in the simulation
+    std::map<std::string, Point> object_locations;
 };
 
 class BridgeView : public GraphicView {
 public:
-    BridgeView(std::string name_);
-    
-    // prints out the current map
-    void draw() override;
+    BridgeView(const std::string& name_);
     
     // Update the location of a name in the View
     void update_location(const std::string& name_, Point location) override;
@@ -121,11 +110,39 @@ public:
     // Update ship heading
     void update_course_and_speed(const std::string& name_, double course_, double) override;
     
+    // Get x, y coordinates and name/points to map
+    std::vector<std::vector<std::string>> get_draw_info() override;
 private:
+    // Print the top of the map
+    void print_map_heading() override;
+    
+    // Locations of all Sim_objects in the simulation
+    std::map<std::string, Point> object_locations;
     std::string name;
+    bool is_afloat;
     Point ownship_location;
     double heading;
-    bool is_afloat;
+};
+
+class ObjectView : public GraphicView {
+public:
+    ObjectView(const std::string& name_);
+    
+    // Update the location of a name in the View
+    void update_location(const std::string& name_, Point location) override;
+    
+    // update a removed Ship
+    void update_remove(const std::string& name_) override;
+    
+    // Get x, y coordinates and name/points to map
+    std::vector<std::vector<std::string>> get_draw_info() override;
+private:
+    // Print the top of the map
+    void print_map_heading() override;
+    
+    // Locations of all Sim_objects in the simulation
+    std::map<std::string, Point> object_locations;
+    std::string name;
 };
 
 #endif

@@ -20,6 +20,9 @@ functions are implemented in this class to throw an Error exception.
 #include <memory>
 
 class Island;
+class Tanker;
+class Cruise_ship;
+class Cruiser;
 
 class Ship : public Sim_object, public std::enable_shared_from_this<Ship> {
 public:
@@ -98,7 +101,12 @@ public:
 	// interactions with other objects
 	// receive a hit from an attacker
     virtual void receive_hit(int hit_force, std::shared_ptr<Ship> attacker_ptr);
-		
+
+    // Virtual response functions to attacks
+    virtual void respond_to_attack(std::shared_ptr<Tanker> tanker_ptr) {};
+    virtual void respond_to_attack(std::shared_ptr<Cruise_ship> cruise_ship_ptr) {};
+    virtual void respond_to_attack(std::shared_ptr<Cruiser> cruiser_ptr) {};
+
 protected:
 	// future projects may need additional protected members
 

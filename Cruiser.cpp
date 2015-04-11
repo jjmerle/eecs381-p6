@@ -4,6 +4,7 @@
 using std::cout;
 using std::endl;
 using std::shared_ptr;
+using std::static_pointer_cast;
 
 // initialize, then output constructor message
 Cruiser::Cruiser(const std::string& name_, Point position_) :
@@ -28,7 +29,8 @@ void Cruiser::describe() const {
 
 void Cruiser::receive_hit(int hit_force, shared_ptr<Ship> attacker_ptr) {
     Ship::receive_hit(hit_force, attacker_ptr);
-    if(is_afloat() && !is_attacking()) {
+    if(is_afloat() && !is_attacking()) { // TODO - put this in response?
         Warship::attack(attacker_ptr);
     }
+    attacker_ptr->respond_to_attack(static_pointer_cast<Cruiser>(shared_from_this()));
 }

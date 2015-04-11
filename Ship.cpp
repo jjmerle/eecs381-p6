@@ -7,6 +7,7 @@
 #include <iomanip>
 using std::cout;
 using std::endl;
+using std::string;
 using std::shared_ptr;
 using std::setprecision;
 
@@ -15,7 +16,7 @@ const char* const ship_speed_error_c = "Ship cannot go that fast!";
 const char* const ship_attack_error_c = "Cannot attack!";
 
 // initialize, then output constructor message
-Ship::Ship(const std::string& name_, Point position_, double fuel_capacity_,
+Ship::Ship(const string& name_, Point position_, double fuel_capacity_,
     double maximum_speed_, double fuel_consumption_, int resistance_) :
     Sim_object(name_), fuel(fuel_capacity_), fuel_consumption(fuel_consumption_),
     fuel_capacity(fuel_capacity_), maximum_speed(maximum_speed_),

@@ -4,11 +4,12 @@
 #include <memory>
 using std::cout;
 using std::endl;
+using std::string;
 using std::shared_ptr;
 using std::weak_ptr;
 
 // initialize, then output constructor message
-Warship::Warship(const std::string& name_, Point position_, double fuel_capacity_,
+Warship::Warship(const string& name_, Point position_, double fuel_capacity_,
     double maximum_speed_, double fuel_consumption_, int resistance_,
     int firepower_, double maximum_range_) :
     Ship(name_, position_, fuel_capacity_, maximum_speed_, fuel_consumption_, resistance_),
@@ -75,6 +76,18 @@ void Warship::describe() const {
         }
         cout << endl;
     }
+}
+
+void Warship::respond_to_attack(shared_ptr<Tanker> tanker_ptr) {
+    cout << "In DD-Tanker!" << endl;
+}
+
+void Warship::respond_to_attack(shared_ptr<Cruise_ship> cruise_ship_ptr) {
+    cout << "In DD-Cruise_ship!" << endl;
+}
+
+void Warship::respond_to_attack(shared_ptr<Cruiser> cruiser_ptr) {
+    cout << "In DD-Cruiser!" << endl;
 }
 
 // return true if this Warship is in the attacking state

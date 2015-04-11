@@ -7,12 +7,13 @@
 using std::cout;
 using std::endl;
 using std::shared_ptr;
+using std::static_pointer_cast;
 using std::string;
 
 const char* const tanker_no_cargo_destinations_c = " now has no cargo destinations";
 
 // initialize, the output constructor message
-Tanker::Tanker(const std::string& name_, Point position_) :
+Tanker::Tanker(const string& name_, Point position_) :
     Ship(name_, position_, 100, 10., 2., 0), cargo(0), cargo_capacity(1000),
     cargo_state(Cargo_State_e::NO_CARGO_DESTINATIONS), load_destination(nullptr),
     unload_destination(nullptr) { }
@@ -171,4 +172,9 @@ void Tanker::describe() const {
             break;
     };
     cout << endl;
+}
+
+void Tanker::receive_hit(int hit_force, shared_ptr<Ship> attacker_ptr) {
+    Ship::receive_hit(hit_force, attacker_ptr);
+    attacker_ptr->respond_to_attack(static_pointer_cast<Tanker>(shared_from_this()));
 }

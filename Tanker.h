@@ -41,6 +41,8 @@ public:
 	void update() override;
 	void describe() const override;
     
+    void receive_hit(int hit_force, std::shared_ptr<Ship> attacker_ptr) override;
+    
 private:
     enum class Cargo_State_e {
         NO_CARGO_DESTINATIONS, UNLOADING, MOVING_TO_LOADING,

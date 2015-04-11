@@ -278,10 +278,38 @@ void Controller::close_bridge_view() {
         Model::get_instance().detach(bridgeview_it->second);
         bridgeview_map.erase(bridgeview_it);
     }
-    
 }
 
+/* - create and open a object view that shows the view from birds-eye of object <objectname>. Errors in
+ order of checks: no object of that name; objectview is already open for that object.*/
+void Controller::open_object_view() {
+    string objectname;
+    cin >> objectname;
+    if(!(Model::get_instance().is_ship_present(objectname) || Model::get_instance().is_island_present(objectname))) {
+        throw Error("Object not found!");
+    }
+    auto objectview_it = objectview_map.find(objectname);
+    if(objectview_it != objectview_map.end()) {
+        throw Error("Object view is already open for that object!");
+    } else {
+        shared_ptr<ObjectView> objectview_ptr = make_shared<ObjectView>(objectname);
+        objectview_map[objectname] = objectview_ptr;
+        Model::get_instance().attach(objectview_ptr);
+    }
+}
 
+/* Close a objectview for object with name objectname */
+void Controller::close_object_view() {
+    string objectname;
+    cin >> objectname;
+    auto objectview_it = objectview_map.find(objectname);
+    if(objectview_it == objectview_map.end()) {
+        throw Error("Object view for that object is not open!");
+    } else {
+        Model::get_instance().detach(objectview_it->second);
+        objectview_map.erase(objectview_it);
+    }
+}
 
 // output constructor message
 Controller::Controller() {
@@ -311,6 +339,8 @@ Controller::Controller() {
     mv_commands.insert(mv_fn_pair("close_sailing_view", &Controller::close_sailing_view));
     mv_commands.insert(mv_fn_pair("open_bridge_view", &Controller::open_bridge_view));
     mv_commands.insert(mv_fn_pair("close_bridge_view", &Controller::close_bridge_view));
+    mv_commands.insert(mv_fn_pair("open_object_view", &Controller::open_object_view));
+    mv_commands.insert(mv_fn_pair("close_object_view", &Controller::close_object_view));
 }
 
 // create View object, run the program by acccepting user commands, then destroy View object

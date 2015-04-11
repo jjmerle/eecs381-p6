@@ -8,6 +8,11 @@ abstract base class, so concrete classes derived from Warship must be declared.
 #include "Ship.h"
 #include <memory>
 
+// added in
+class Tanker;
+class Cruise_ship;
+class Cruiser;
+
 class Warship : public Ship {
 public:
 	// perform warship-specific behavior
@@ -24,6 +29,10 @@ public:
 	void stop_attack() override;
 	
 	void describe() const override;
+    
+    void respond_to_attack(std::shared_ptr<Tanker> tanker_ptr) override;
+    void respond_to_attack(std::shared_ptr<Cruise_ship> cruise_ship_ptr) override;
+    void respond_to_attack(std::shared_ptr<Cruiser> cruiser_ptr) override;
 
 protected:
 	// future projects may need additional protected members

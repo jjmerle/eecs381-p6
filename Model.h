@@ -86,6 +86,7 @@ public:
 private:
     // create the initial objects, output constructor message
     Model();
+    ~Model() {};
     
     struct Name_Comparator {
         bool operator() (std::shared_ptr<Sim_object> s1, std::shared_ptr<Sim_object> s2);

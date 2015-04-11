@@ -37,14 +37,14 @@ bool Model::Name_Comparator::operator()(shared_ptr<Sim_object> s1, shared_ptr<Si
     return s1->get_name() < s2->get_name();
 }
 
-void Model::create_and_insert_island(const std::string& name_, Point position_,
+void Model::create_and_insert_island(const string& name_, Point position_,
                           double fuel_, double production_rate_) {
     shared_ptr<Island> island_ptr = make_shared<Island>(name_, position_, fuel_, production_rate_);
     islands.insert(island_pair(name_, island_ptr));
     all_objects.insert(island_ptr);
 }
 
-void Model::create_and_insert_ship(const std::string& name, const std::string& type,
+void Model::create_and_insert_ship(const string& name, const string& type,
                                    Point initial_position) {
     shared_ptr<Ship> ship_ptr = create_ship(name, type, initial_position);
     ships.insert(ship_pair(name, ship_ptr));
@@ -65,7 +65,7 @@ Model::Model() : time(0) {
 
 // is name already in use for either ship or island?
 // either the identical name, or identical in first two characters counts as in-use
-bool Model::is_name_in_use(const std::string& name) const {
+bool Model::is_name_in_use(const string& name) const { // TODO - bind
     return any_of(all_objects.begin(), all_objects.end(),
                   [&name](shared_ptr<Sim_object> so) {
                       string obj_name = so->get_name();
@@ -74,12 +74,12 @@ bool Model::is_name_in_use(const std::string& name) const {
 }
 
 // is there such an island?
-bool Model::is_island_present(const std::string& name) const {
+bool Model::is_island_present(const string& name) const {
     return islands.find(name) != islands.end();
 }
 
 // will throw Error("Island not found!") if no island of that name
-shared_ptr<Island> Model::get_island_ptr(const std::string& name) const {
+shared_ptr<Island> Model::get_island_ptr(const string& name) const {
     auto ip = islands.find(name);
     if(ip == islands.end()) {
         throw Error("Island not found!");
@@ -89,7 +89,7 @@ shared_ptr<Island> Model::get_island_ptr(const std::string& name) const {
 }
 
 // is there such an ship?
-bool Model::is_ship_present(const std::string& name) const {
+bool Model::is_ship_present(const string& name) const {
     return ships.find(name) != ships.end();
 }
 
@@ -101,7 +101,7 @@ void Model::add_ship(shared_ptr<Ship> ship) {
 }
 
 // will throw Error("Ship not found!") if no ship of that name
-shared_ptr<Ship> Model::get_ship_ptr(const std::string& name) const {
+shared_ptr<Ship> Model::get_ship_ptr(const string& name) const {
     auto ip = ships.find(name);
     if(ip == ships.end()) {
         throw Error("Ship not found!");
@@ -149,19 +149,17 @@ void Model::notify_location(const string& name, Point location) {
 }
 
 // notify the views that an object is now gone
-void Model::notify_gone(const std::string& name) {
-    for_each(view_list.begin(), view_list.end(),
-            [&name](shared_ptr<View> vp) { vp->update_remove(name); });
+void Model::notify_gone(const string& name) {
+    for_each(view_list.begin(), view_list.end(), bind(&View::update_remove, _1, name));
 }
 
 // Update ship fuel
-void Model::notify_fuel(const std::string& name, double fuel) {
-    for_each(view_list.begin(), view_list.end(),
-             [&name, &fuel](shared_ptr<View> vp) { vp->update_fuel(name, fuel); });
+void Model::notify_fuel(const string& name, double fuel) {
+    for_each(view_list.begin(), view_list.end(), bind(&View::update_fuel, _1, name, fuel));
 }
 
 // Update ship speed
-void Model::notify_course_and_speed(const std::string& name, double course, double speed) {
+void Model::notify_course_and_speed(const string& name, double course, double speed) {
     for_each(view_list.begin(), view_list.end(),
              [&name, &course, &speed](shared_ptr<View> vp) { vp->update_course_and_speed(name, course, speed); });
 }

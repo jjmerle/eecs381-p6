@@ -18,6 +18,7 @@ using std::min_element;
 using std::remove_if;
 using std::set;
 using std::shared_ptr;
+using std::static_pointer_cast;
 using std::string;
 using std::vector;
 
@@ -154,4 +155,9 @@ void Cruise_ship::set_course_and_speed(double course, double speed) {
 void Cruise_ship::stop() {
     cruise_state = Cruise_State_e::NOT_CRUISING;
     Ship::stop();
+}
+
+void Cruise_ship::receive_hit(int hit_force, shared_ptr<Ship> attacker_ptr) {
+    Ship::receive_hit(hit_force, attacker_ptr);
+    attacker_ptr->respond_to_attack(static_pointer_cast<Cruise_ship>(shared_from_this()));
 }
