@@ -110,6 +110,9 @@ public:
     
     // Remove the name and its location; no error if the name is not present.
     void update_remove(const std::string& name) override;
+
+protected:
+    void clear();
     
 private:
     // Print the top of the map
@@ -131,12 +134,6 @@ public:
     // default constructor sets the default size, scale, and origin
     MapView();
     
-    // Update the location of a name in the View
-    void update_location(const std::string& name_, Point location) override;
-    
-    // Remove the name and its location; no error if the name is not present.
-    void update_remove(const std::string& name) override;
-    
     // Discard the saved information - drawing will show only a empty pattern
     void clear();
     
@@ -150,41 +147,16 @@ public:
     
     // set the parameters to the default values
     void set_defaults();
-    
-private:
-    // Print the top of the map
-    void print_map_heading() override;
-    // Get x, y coordinates and name/points to map
-    std::map<std::string, Point> get_draw_info() override;
-    // Get empty space from derived class
-    const char* const get_empty_space() override { return empty_map_space_c; }
-    // Get space with multiple ships from derived class
-    const char* const get_crowded_space() override { return "* "; }
-    // Get the second dimension of the map
-    int get_second_dimension_size() override { return get_first_dimension_size(); }
 };
 
-class ObjectView : public SquareView {
+class ObjectView : public SquareView { // TODO - what happens when ship is gone? update_remove
 public:
     ObjectView(const std::string& name_);
     
     // Update the location of a name in the View
     void update_location(const std::string& name_, Point location) override;
     
-    // update a removed Ship
-    void update_remove(const std::string& name_) override;
-    
 private:
-    // Print the top of the map
-    void print_map_heading() override;
-    // Get x, y coordinates and name/points to map
-    std::map<std::string, Point> get_draw_info() override;
-    // Get empty space from derived class
-    const char* const get_empty_space() override { return empty_map_space_c; }
-    // Get space with multiple ships from derived class
-    const char* const get_crowded_space() override { return "* "; }
-    // Get the second dimension of the map
-    int get_second_dimension_size() override { return get_first_dimension_size(); }
     std::string name;
 };
 

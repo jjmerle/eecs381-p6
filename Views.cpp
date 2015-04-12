@@ -158,6 +158,40 @@ bool GraphicView::get_subscripts(int &ix, int &iy, Point location)
 // ************************************* //
 SquareView::SquareView() : GraphicView(size_default_c, scale_default_c, origin_default_c, true) {}
 
+// Save the supplied name and location for future use in a draw() call
+// If the name is already present,the new location replaces the previous one.
+void SquareView::update_location(const string& name_, Point location) {
+    object_locations[name_] = location;
+}
+
+// Remove the name and its location; no error if the name is not present.
+void SquareView::update_remove(const string& name) {
+    object_locations.erase(name);
+}
+
+void SquareView::clear() {
+    object_locations.clear();
+}
+
+void SquareView::print_map_heading() {
+    cout << "Display size: " << get_first_dimension_size() << ", scale: " << get_scale() << ", origin: " << get_origin() << endl;
+    bool first_outside = false; // Bool to track if we have an Object outside of the Map
+    int x, y;
+    for(const auto pair : object_locations) {
+        if(!GraphicView::get_subscripts(x, y, pair.second)) {
+            if(!first_outside) {
+                first_outside = true;
+                cout << pair.first;
+            } else {
+                cout << ", " << pair.first;
+            }
+        }
+    }
+    if(first_outside) {
+        cout << " outside the map" << endl;
+    }
+}
+
 // Get x, y coordinates and name/points to map
 map<string, Point> SquareView::get_draw_info() {
     map<string, Point> points_to_plot;
@@ -177,19 +211,6 @@ map<string, Point> SquareView::get_draw_info() {
 // ********************************** //
 // default constructor sets the default size, scale, and origin, outputs constructor message
 MapView::MapView() : SquareView() { }
-
-
-
-// Save the supplied name and location for future use in a draw() call
-// If the name is already present,the new location replaces the previous one.
-void MapView::update_location(const string& name_, Point location) {
-    object_locations[name_] = location;
-}
-
-// Remove the name and its location; no error if the name is not present.
-void MapView::update_remove(const string& name) {
-    object_locations.erase(name);
-}
 
 void MapView::set_size(int size_) {
     if(size_ > 30)
@@ -220,26 +241,21 @@ void MapView::set_defaults() {
 }
 
 // Clear the map of Points
-void MapView::clear() {
-    object_locations.clear();
+void MapView::clear() { // TODO - ok?
+    SquareView::clear();
 }
 
-void MapView::print_map_heading() {
-    cout << "Display size: " << get_first_dimension_size() << ", scale: " << get_scale() << ", origin: " << get_origin() << endl;
-    bool first_outside = false; // Bool to track if we have an Object outside of the Map
-    int x, y;
-    for(const auto pair : object_locations) {
-        if(!GraphicView::get_subscripts(x, y, pair.second)) {
-            if(!first_outside) {
-                first_outside = true;
-                cout << pair.first;
-            } else {
-                cout << ", " << pair.first;
-            }
-        }
-    }
-    if(first_outside) {
-        cout << " outside the map" << endl;
+// ************************************* //
+// ***** ObjectView Implementation ***** //
+// ************************************* //
+
+ObjectView::ObjectView(const string& name_) : SquareView(), name(name_) {}
+
+// Update the location of a name in the View
+void ObjectView::update_location(const string& name_, Point location) {
+    SquareView::update_location(name_, location);
+    if(name == name_) {
+        set_origin(Point(location.x - get_first_dimension_size(), location.y - get_first_dimension_size()));
     }
 }
 
@@ -316,55 +332,4 @@ void BridgeView::update_course_and_speed(const string& name_, double course_, do
 // Get empty space from derived class
 const char* const BridgeView::get_empty_space() {
     return (is_afloat) ? empty_map_space_c : "w-";
-}
-
-// ************************************* //
-// ***** ObjectView Implementation ***** //
-// ************************************* //
-
-ObjectView::ObjectView(const string& name_) : SquareView(), name(name_) {}
-
-// Update the location of a name in the View
-void ObjectView::update_location(const string& name_, Point location) {
-    object_locations[name_] = location;
-    if(name == name_) {
-        set_origin(Point(location.x - get_first_dimension_size(), location.y - get_first_dimension_size()));
-    }
-}
-    
-// update a removed Ship
-void ObjectView::update_remove(const string& name_) {
-    object_locations.erase(name_);
-}
-    
-// Get x, y coordinates and name/points to map
-map<string, Point> ObjectView::get_draw_info() {
-    map<string, Point> points_to_plot;
-    // Mark the Matrix with Object Locations
-    for(const auto& pair : object_locations) {
-        int x, y;
-        if(GraphicView::get_subscripts(x, y, pair.second)) {
-            points_to_plot[pair.first] = Point(x, y);
-        }
-    }
-    return points_to_plot;
-}
-
-void ObjectView::print_map_heading() {
-    cout << "Display size: " << get_first_dimension_size() << ", scale: " << get_scale() << ", origin: " << get_origin() << endl;
-    bool first_outside = false; // Bool to track if we have an Object outside of the Map
-    int x, y;
-    for(const auto& pair : object_locations) {
-        if(!GraphicView::get_subscripts(x, y, pair.second)) {
-            if(!first_outside) {
-                first_outside = true;
-                cout << pair.first;
-            } else {
-                cout << ", " << pair.first;
-            }
-        }
-    }
-    if(first_outside) {
-        cout << " outside the map" << endl;
-    }
 }
