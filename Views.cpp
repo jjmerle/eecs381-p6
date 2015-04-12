@@ -153,14 +153,13 @@ bool GraphicView::get_subscripts(int &ix, int &iy, Point location)
         return true;
 }
 
-// ********************************** //
-// ***** MapView Implementation ***** //
-// ********************************** //
-// default constructor sets the default size, scale, and origin, outputs constructor message
-MapView::MapView() : GraphicView(size_default_c, scale_default_c, origin_default_c, true)  { }
+// ************************************* //
+// ***** SquareView Implementation ***** //
+// ************************************* //
+SquareView::SquareView() : GraphicView(size_default_c, scale_default_c, origin_default_c, true) {}
 
 // Get x, y coordinates and name/points to map
-map<string, Point> MapView::get_draw_info() {
+map<string, Point> SquareView::get_draw_info() {
     map<string, Point> points_to_plot;
     
     // Mark the Matrix with Object Locations
@@ -172,6 +171,14 @@ map<string, Point> MapView::get_draw_info() {
     }
     return points_to_plot;
 }
+
+// ********************************** //
+// ***** MapView Implementation ***** //
+// ********************************** //
+// default constructor sets the default size, scale, and origin, outputs constructor message
+MapView::MapView() : SquareView() { }
+
+
 
 // Save the supplied name and location for future use in a draw() call
 // If the name is already present,the new location replaces the previous one.
@@ -315,8 +322,7 @@ const char* const BridgeView::get_empty_space() {
 // ***** ObjectView Implementation ***** //
 // ************************************* //
 
-ObjectView::ObjectView(const string& name_) : GraphicView(size_default_c, scale_default_c, origin_default_c, true),
-    name(name_) {}
+ObjectView::ObjectView(const string& name_) : SquareView(), name(name_) {}
 
 // Update the location of a name in the View
 void ObjectView::update_location(const string& name_, Point location) {
