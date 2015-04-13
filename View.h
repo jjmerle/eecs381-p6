@@ -28,6 +28,7 @@ using the new settings.
 class View {
 public:
     View() {};
+    virtual ~View() {};
     // disallow copy/move construction or assignment
     View(View& other)=delete;
     View(View&& other)=delete;
