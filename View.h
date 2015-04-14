@@ -42,7 +42,7 @@ public:
     virtual void update_remove(const std::string& name_) = 0;
     
     // Update the Sim_object in the View with 'name' == name
-    virtual void update_location(const std::string& name, Point location) = 0;
+    virtual void update_location(const std::string& name, Point location) { };
     
     // *** Fat Interface *** //
     // Default behavior is to do nothing //

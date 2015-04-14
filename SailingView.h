@@ -13,9 +13,6 @@ public:
     // Update ship fuel
     void update_fuel(const std::string& name, double fuel_) override;
     
-    // Update the Sim_object in the View with 'name' == name
-    void update_location(const std::string& name_, Point location) override;
-    
     // Remove a Ship from the View
     void update_remove(const std::string& name) override;
     
