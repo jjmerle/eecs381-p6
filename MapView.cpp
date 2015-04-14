@@ -54,7 +54,7 @@ void MapView::clear() {
     object_locations.clear();
 }
 
-void MapView::print_map_heading() {
+void MapView::print_map_heading() const {
     cout << "Display size: " << get_first_dimension_size() << ", scale: " << get_scale() << ", origin: " << get_origin() << endl;
     bool first_outside = false; // Bool to track if we have an Object outside of the Map
     int x, y;

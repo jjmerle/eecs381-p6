@@ -17,9 +17,9 @@ public:
 private:
     // Templated Design Interface functions
     // Print the top of the map
-    void print_map_heading() override;
+    void print_map_heading() const override;
     // Get x, y coordinates and name/points to map
-    std::map<std::string, Point> get_draw_info() override { return object_locations; }
+    std::map<std::string, Point> get_draw_info() const override { return object_locations; }
     
     // Locations of all Sim_objects in the simulation
     std::map<std::string, Point> object_locations;

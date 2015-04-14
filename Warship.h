@@ -42,13 +42,15 @@ protected:
 	bool is_attacking() const;
 	
 	// fire at the current target
-	void fire_at_target();
+	virtual void fire_at_target(); 
 		
 	// is the current target in range?
 	bool target_in_range() const;
 
 	// get the target
     std::shared_ptr<Ship> get_target() const;
+    
+    int get_firepower() const { return firepower; }
     
 private:
     enum class Attack_State_e { ATTACKING, NOTATTACKING };

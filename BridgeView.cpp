@@ -13,7 +13,7 @@ using std::string;
 BridgeView::BridgeView(const string& name_) : GraphicView(19, 10, -90.0, false),name(name_), is_afloat(true) { }
 
 // prints out the current map
-map<string, Point> BridgeView::get_draw_info() {
+map<string, Point> BridgeView::get_draw_info() const {
     map<string, Point> points_to_plot;
     if(is_afloat) {
         Point ownship_location = object_locations.find(name)->second;
@@ -40,7 +40,7 @@ map<string, Point> BridgeView::get_draw_info() {
     return points_to_plot;
 }
 
-void BridgeView::print_map_heading() {
+void BridgeView::print_map_heading() const {
     cout << "Bridge view from " << name;
     if(is_afloat) {
         cout << " position " << ownship_location << " heading " << heading;
@@ -73,6 +73,6 @@ void BridgeView::update_course_and_speed(const string& name_, double course_, do
 }
 
 // Get empty space from derived class
-const char* const BridgeView::get_empty_space() {
+const char* const BridgeView::get_empty_space() const {
     return (is_afloat) ? empty_map_space_c : "w-";
 }

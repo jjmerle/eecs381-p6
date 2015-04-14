@@ -1,4 +1,5 @@
 #include "Cruiser.h"
+#include "Pirate_ship.h"
 #include <iostream>
 #include <memory>
 using std::cout;
@@ -27,10 +28,25 @@ void Cruiser::describe() const {
     Warship::describe();
 }
 
-void Cruiser::receive_hit(int hit_force, shared_ptr<Ship> attacker_ptr) {
+//MITCH: ASK ABOUT MAKING FIRE AT TARGET VIRTUAL
+void Cruiser::fire_at_target(){
+    Warship::fire_at_target();
+    //MITCH FIGURE OUT  since shared_from_this is inherited from ship level we must cast the pointer to pirate ships type
+    //If the target is still afloat, respond
+    shared_ptr<Ship> target_now = get_target();
+    target_now->receive_hit(get_firepower(), static_pointer_cast<Cruiser>(shared_from_this()));
+}
+
+void Cruiser::receive_hit(int hit_force, shared_ptr<Cruiser> attacker_ptr) {
     Ship::receive_hit(hit_force, attacker_ptr);
     if(is_afloat() && !is_attacking()) { // TODO - put this in response?
         Warship::attack(attacker_ptr);
     }
-    attacker_ptr->respond_to_attack(static_pointer_cast<Cruiser>(shared_from_this()));
+}
+
+void Cruiser::receive_hit(int hit_force, shared_ptr<Pirate_ship> attacker_ptr) {
+    Ship::receive_hit(hit_force, attacker_ptr);
+    if(is_afloat() && !is_attacking()) { // TODO - put this in response?
+        Warship::attack(attacker_ptr);
+    }
 }

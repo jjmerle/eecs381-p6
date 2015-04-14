@@ -160,33 +160,8 @@ void Pirate_ship::fire_at_target(){
     Warship::fire_at_target();
     //MITCH FIGURE OUT  since shared_from_this is inherited from ship level we must cast the pointer to pirate ships type
     //If the target is still afloat, respond
-    if (get_target()){
-        cout << get_target()->get_name() << " responding to " << get_name() << "'s attack" << endl;
-        get_target()->handle_attacker(static_pointer_cast<Pirate_ship>(shared_from_this()));
-    }
-}
-
-
-//Move straight towards ship to try to steal its treasure and cargo
-//MITCH: IT ALREADY DOES THAT! THINK OF WHAT ELSE I CAN DO
-//MITCH: MAKE THE ATTACKERS CONST?
-void Pirate_ship::handle_attacker(shared_ptr<Pirate_ship> attacker_ptr){
-    if (!is_attacking()) {
-        attack(attacker_ptr);
-        cout << get_name() << " now attacking " << attacker_ptr->get_name() << endl;
-    }
-}
-
-void Pirate_ship::handle_attacker(shared_ptr<Cruiser> attacker_ptr){
-    //If its not heading to an island, not attacking, and can move, go to closest island so cargo can be sold and pirates can escape
-    //MITCH    get_target() != attacker_ptr &&
-    if (!is_attacking() && can_move()) {
-        if (!destination_island_ptr) { //Mitch: I should check for null island??? WILL NEVER BE THE CASE THOUGH. ASK IF I SHOULD TEST FOR
-            destination_island_ptr = get_closest_island(get_location());
-            set_destination_position_and_speed(destination_island_ptr->get_location(), get_maximum_speed());
-        }
-        cout << get_name() << " running away from " << attacker_ptr->get_name() << endl;
-    }
+    shared_ptr<Ship> target_now = get_target();
+    target_now->receive_hit(get_firepower(), static_pointer_cast<Pirate_ship>(shared_from_this()));
 }
 
 //Private

@@ -28,10 +28,6 @@ public:
     //Returns the amount of treasure and sets the treasure to 0
     double give_treasure() override;
     
-    //MITCH: PROJECT 6
-    void handle_attacker(std::shared_ptr<Pirate_ship> attacker_ptr) override;
-    void handle_attacker(std::shared_ptr<Cruiser> attacker_ptr) override;
-    
     //Will fire at the current target and tells the target to respond if it is still afloat
     void fire_at_target() override;
     

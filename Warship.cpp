@@ -86,8 +86,6 @@ bool Warship::is_attacking() const {
 // fire at the current target
 void Warship::fire_at_target() {
     cout << get_name() << " fires" << endl;
-    shared_ptr<Ship> target_now = target.lock();
-    target_now->receive_hit(firepower, shared_from_this());
 }
 
 // is the current target in range?

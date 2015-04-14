@@ -21,7 +21,9 @@ public:
 
 	void update() override;
 	void describe() const override;
-    void receive_hit(int hit_force, std::shared_ptr<Ship> attacker_ptr) override;
+    void fire_at_target() override;
+    void receive_hit(int hit_force, std::shared_ptr<Cruiser> attacker_ptr) override;
+    void receive_hit(int hit_force, std::shared_ptr<Pirate_ship> attacker_ptr) override;
 };
 
 #endif

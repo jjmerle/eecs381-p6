@@ -174,7 +174,11 @@ void Tanker::describe() const {
     cout << endl;
 }
 
-void Tanker::receive_hit(int hit_force, shared_ptr<Ship> attacker_ptr) {
-    Ship::receive_hit(hit_force, attacker_ptr);
-    attacker_ptr->respond_to_attack(static_pointer_cast<Tanker>(shared_from_this()));
+void Tanker::receive_hit(int hit_force, std::shared_ptr<Cruiser> attacker_ptr) {
+    Ship::receive_hit(hit_force, static_pointer_cast<Ship>(shared_from_this()));
+    cout << "Tanker responding to Cruiser now" << endl;
+}
+void Tanker::receive_hit(int hit_force, std::shared_ptr<Pirate_ship> attacker_ptr) {
+    Ship::receive_hit(hit_force, static_pointer_cast<Ship>(shared_from_this()));
+    cout << "Tanker responding to Pirate Ship now" << endl;
 }
