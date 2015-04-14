@@ -78,18 +78,6 @@ void Warship::describe() const {
     }
 }
 
-void Warship::respond_to_attack(shared_ptr<Tanker> tanker_ptr) {
-    cout << "In DD-Tanker!" << endl;
-}
-
-void Warship::respond_to_attack(shared_ptr<Cruise_ship> cruise_ship_ptr) {
-    cout << "In DD-Cruise_ship!" << endl;
-}
-
-void Warship::respond_to_attack(shared_ptr<Cruiser> cruiser_ptr) {
-    cout << "In DD-Cruiser!" << endl;
-}
-
 // return true if this Warship is in the attacking state
 bool Warship::is_attacking() const {
     return attack_state == Attack_State_e::ATTACKING;

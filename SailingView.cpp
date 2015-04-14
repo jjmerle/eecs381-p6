@@ -1,5 +1,4 @@
 #include "SailingView.h"
-#include "Model.h"
 #include "Utility.h"
 #include <iostream>
 #include <iomanip>
@@ -25,14 +24,6 @@ void SailingView::draw()  {
                  << name_sail_data_pair.second.course << setw(sailng_data_set_width_c)
                  << name_sail_data_pair.second.speed <<  endl;
              });
-}
-
-// Update the Sim_object in the View with 'name' == name
-void SailingView::update_location(const string& name, Point location) {
-    if(Model::get_instance().is_ship_present(name) && ship_sailing_data.find(name) == ship_sailing_data.end()) {
-        ship_sailing_data[name];
-    }
-    
 }
 
 // Update ship fuel

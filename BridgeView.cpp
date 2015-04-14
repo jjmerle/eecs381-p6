@@ -34,12 +34,6 @@ map<string, Point> BridgeView::get_draw_info() {
                     continue;
                 }
                 points_to_plot[name_position_pair.first] = Point(bow_angle, 0);
-                /*
-                 int x, y;
-                if(get_subscripts(x, y, Point(bow_angle, 0))) {
-                    points_to_plot[name_position_pair.first] = Point(x, y);
-                }
-                 */
             }
         }
     }

@@ -29,10 +29,6 @@ public:
 	void stop_attack() override;
 	
 	void describe() const override;
-    
-    void respond_to_attack(std::shared_ptr<Tanker> tanker_ptr) override;
-    void respond_to_attack(std::shared_ptr<Cruise_ship> cruise_ship_ptr) override;
-    void respond_to_attack(std::shared_ptr<Cruiser> cruiser_ptr) override;
 
 protected:
 	// future projects may need additional protected members
