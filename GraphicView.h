@@ -28,7 +28,7 @@ private:
     bool draw_y_coordinates;
     // Template Pattern helpers
     // Print the top of the map
-    virtual void print_map_heading() const = 0;
+    virtual void print_map_heading() = 0;
     // Get x, y coordinates and name/points to map
     virtual std::map<std::string, Point> get_draw_info() const = 0;
     // Get empty space from derived class

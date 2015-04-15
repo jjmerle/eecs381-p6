@@ -31,10 +31,14 @@ void SailingView::update_fuel(const string& name, double fuel_) {
     ship_sailing_data[name].fuel = fuel_;
 }
 
-// Update ship speed
-void SailingView::update_course_and_speed(const string& name, double course_, double speed_) {
+// Update ship course
+void SailingView::update_course(const string& name, double course_) {
     SailingViewInfo& sailing_data = ship_sailing_data[name];
     sailing_data.course = course_;
+}
+
+void SailingView::update_speed(const string& name, double speed_) {
+    SailingViewInfo& sailing_data = ship_sailing_data[name];
     sailing_data.speed = speed_;
 }
 

@@ -1,59 +1,50 @@
 #ifndef CRUISE_SHIP_H
 #define CRUISE_SHIP_H
-/* It travels at the speed specified in the initial command. When it arrives at 
-    an island, it docks, and then it stays for a few updates. On the first one, 
-    it attempts to refuel from the island. On the next update it does nothing while 
-    the passengers see the local sights. On the third update, it sets course for 
-    its next destination (the closest unvisited island; in case of a tie, the first 
-    in alphabetical order). When it has visited the last island, it returns to the 
-    first island, the one it was originally sent to. When it arrives there, it 
-    docks, does not try to refuel, and announces that the cruise is over.
- 
-    A Cruise_ship has fuel capacity and initial amount 500 tons, maximum speed 15., 
-    fuel consumption 2 tons/nm, and resistance 0
- */
-#include "Ship.h"
-#include <vector>
-#include <string>
 
-class Cruise_ship : public Ship {
+#include "Ship.h"
+
+#include <memory>
+#include <vector>
+
+class Island;
+
+class Cruise_ship: public Ship {
 public:
-    // Construct with name and Position
+    
     Cruise_ship(const std::string& name_, Point position_);
     
-    // Update Cruise_ship state
     void update() override;
     
-    // Describe Cruise_ship state
+    
+    void set_destination_position_and_speed(Point destination_position, double speed) override;
+    
+    
+    void set_course_and_speed(double course, double speed) override;
+    
+    void dock(std::shared_ptr<Island>) override;
+    
     void describe() const override;
     
-    /*** Command functions ***/
-    // Start moving to a destination position at a speed
-    void set_destination_position_and_speed(Point destination_position, double speed) override;
-    // Start moving on a course and speed
-    void set_course_and_speed(double course, double speed) override;
-    // Stop moving
     void stop() override;
     
-    void receive_hit(int hit_force, std::shared_ptr<Ship> attacker_ptr) override;
-    
 private:
-    // Enums for current Cruise state
-    enum class Cruise_State_e {
-        NOT_CRUISING, CRUISING_TO_DESTINATION, REFUELING,
-        DOCKED_SIGHTSEEING, LEAVING_ISLAND
-    };
+    enum class Dock_action_e {REFUEL, SIGHTSEEING, SET_NEW_COURSE, NO_STATE};
+    Dock_action_e dock_action;
+    std::vector<std::shared_ptr<const Island>> visited_islands;
+    std::shared_ptr<Island> start_island_ptr;
+    std::shared_ptr<Island> next_island_ptr;
+    double cruise_speed;
     
-    int cruise_speed;
-    Cruise_State_e cruise_state;
-    std::shared_ptr<Island> first_destination;
-    std::shared_ptr<Island> cruise_destination;
-    std::vector<std::shared_ptr<Island>> islands;
-
-    // Class helper functions
+    //prints a message and resets the cruise state
     void cancel_cruise();
+    
+    //resets all variables involving the cruise
+    void reset_cruise_state();
+    
+    //checks if currently is in cruise
+    bool is_in_cruise() const;
+    
+    
 };
-
-
 
 #endif

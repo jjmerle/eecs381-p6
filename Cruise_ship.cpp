@@ -1,163 +1,153 @@
 #include "Cruise_ship.h"
 #include "Model.h"
 #include "Island.h"
+#include "Cruise_ship.h"
+#include "Model.h"
 #include "Geometry.h"
+#include "Island.h"
 #include "Utility.h"
-#include <algorithm>
-#include <cassert>
-#include <cmath>
-#include <iostream>
-#include <memory>
-#include <set>
-#include <string>
+
+//MITCH: remove
+#include "Pirate_ship.h"
+
 #include <vector>
+#include <memory>
+#include <algorithm>
+#define NDEBUG
+#include <cassert>
+#include <iostream>
+#include <string>
+
+using std::shared_ptr;
+using std::vector;
+using std::sort;
 using std::cout;
 using std::endl;
-using std::find_if;
-using std::min_element;
-using std::remove_if;
-using std::set;
-using std::shared_ptr;
-using std::static_pointer_cast;
 using std::string;
-using std::vector;
 
-// Class helper functions
-void Cruise_ship::cancel_cruise() {
-    cruise_speed = -1;
-    first_destination = cruise_destination = nullptr;
-    islands = Model::get_instance().get_islands();
-    cruise_state = Cruise_State_e::NOT_CRUISING;
-    cout <<  get_name() << " canceling current cruise" << endl;
-}
 
-// Class Public Interface
-Cruise_ship::Cruise_ship(const string& name_, Point position_) :
-    Ship(name_, position_, 500, 15., 2, 0), cruise_speed(0),
-    cruise_state(Cruise_State_e::NOT_CRUISING),
-    islands(Model::get_instance().get_islands()) { }
 
-// Update Cruise_ship state
+Cruise_ship::Cruise_ship(const std::string& name_, Point position_):
+Ship(name_, position_, 500, 15., 2., 0),
+dock_action(Dock_action_e::NO_STATE),
+cruise_speed(0.)
+{}
+
+
+
+
 void Cruise_ship::update() {
     Ship::update();
-    if(!can_move() && cruise_state != Cruise_State_e::NOT_CRUISING) {
-        cancel_cruise();
-    } else {
-        switch(cruise_state) {
-            case Cruise_State_e::NOT_CRUISING:
-                break;
-            case Cruise_State_e::CRUISING_TO_DESTINATION:
-                if(can_dock(cruise_destination)) {
-                    dock(cruise_destination);
-                    if(first_destination == cruise_destination && islands.empty()) {
-                        cruise_state = Cruise_State_e::NOT_CRUISING;
-                        cout << get_name() << " cruise is over at " << first_destination->get_name() << endl;
-                    } else {
-                        cruise_state = Cruise_State_e::REFUELING;
-                    }
-                }
-                break;
-            case Cruise_State_e::REFUELING:
+    if (!is_in_cruise()) {
+        return;
+    } else if (can_dock(next_island_ptr)) {
+        dock(next_island_ptr);
+        //If there is no next island to visit, end cruise
+        if (!next_island_ptr){
+            cout << get_name() << " cruise is over at " << get_docked_Island()->get_name() << endl;
+            reset_cruise_state();
+            return;
+        }
+    } else if (is_docked()) {
+        switch (dock_action) {
+            case Dock_action_e::REFUEL:
                 refuel();
-                cruise_state = Cruise_State_e::DOCKED_SIGHTSEEING;
+                dock_action = Dock_action_e::SIGHTSEEING;
                 break;
-            case Cruise_State_e::DOCKED_SIGHTSEEING:
-                cruise_state = Cruise_State_e::LEAVING_ISLAND;
+            case Dock_action_e::SIGHTSEEING:
+                dock_action = Dock_action_e::SET_NEW_COURSE;
                 break;
-            case Cruise_State_e::LEAVING_ISLAND:
-                // Find the closest, non-visited Island (break ties lexicographically)
-                if(islands.empty()) {
-                    cruise_destination = first_destination;
-                } else {
-                    Point current_location = get_location();
-                    auto closest_island_it =
-                    min_element(islands.begin(), islands.end(),
-                                [&current_location](shared_ptr<Island> island_ptr1, shared_ptr<Island> island_ptr2) {
-                                    double potential_distance1 =
-                                    cartesian_distance(current_location, island_ptr1->get_location());
-                                    double potential_distance2 =
-                                    cartesian_distance(current_location, island_ptr2->get_location());
-                                    if(abs(potential_distance1 - potential_distance2) < .01) {
-                                        return island_ptr1->get_name() < island_ptr2->get_name();
-                                    } else {
-                                        return potential_distance1 < potential_distance2;
-                                    }
-                                });
-                    cruise_destination = *closest_island_it;
-                    islands.erase(closest_island_it);
-                }
-                Ship::set_destination_position_and_speed(cruise_destination->get_location(), cruise_speed);
-                cout << get_name() << " will visit " << cruise_destination->get_name() << endl;
-                cruise_state = Cruise_State_e::CRUISING_TO_DESTINATION;
+            case Dock_action_e::SET_NEW_COURSE:
+                Ship::set_destination_position_and_speed(next_island_ptr->get_location(), cruise_speed);
+                cout << get_name() << " will visit " << next_island_ptr->get_name() << endl;
+                dock_action = Dock_action_e::NO_STATE;
                 break;
             default:
-                cout << default_switch_error_c << endl;
-        };
+                assert(0); //SHOULD NEVER REACH
+                break;
+        }
     }
 }
 
-void Cruise_ship::describe() const {
+
+void Cruise_ship::dock(shared_ptr<Island> island_ptr){
+    Ship::dock(island_ptr);
+    dock_action = Dock_action_e::REFUEL;
+    //Insert the island we just docked at into visited islands
+    visited_islands.insert(visited_islands.end(), get_docked_Island());
+    
+    //Gets the next island to visit. Next island will be nullptr if nothing left to visit
+    next_island_ptr = get_closest_island(get_location(), &visited_islands);
+    //if we have no more islands to visit are we are not at the starting island, set the next destination to the starting island
+    //This means that if there are no more islands to visit we will be sent to the starting island and
+    //if we are docked at the starting island and there are no more islands to visit, the next island will be nullptr
+    if (!next_island_ptr && get_docked_Island() != start_island_ptr) {
+        next_island_ptr = start_island_ptr;
+    }
+}
+
+//Must restart the dock staging if cruise forcefully left
+void Cruise_ship::set_destination_position_and_speed(Point destination_position, double speed){
+    if (is_in_cruise())
+        cancel_cruise();
+    cruise_speed = speed;
+    //set the new course to the given position
+    Ship::set_destination_position_and_speed(destination_position, speed);
+    start_island_ptr = Model::get_instance().get_island_at(destination_position);
+    //if the given point was the position of an island, then start_island_ptr will not be nullptr
+    if (start_island_ptr) {
+        //start cruise
+        next_island_ptr = start_island_ptr;
+        cout << get_name() << " will visit " << start_island_ptr->get_name() << endl
+        << get_name() << " cruise will start and end at " << start_island_ptr->get_name() << endl;
+    }
+}
+
+void Cruise_ship::set_course_and_speed(double course, double speed){
+    Ship::set_course_and_speed(course, speed);
+    if (is_in_cruise())
+        cancel_cruise();
+}
+
+void Cruise_ship::stop(){
+    Ship::stop();
+    if (is_in_cruise())
+        cancel_cruise();
+}
+
+
+void Cruise_ship::describe() const{
     cout << "\nCruise_ship ";
     Ship::describe();
-    switch(cruise_state) {
-        case Cruise_State_e::NOT_CRUISING:
-            break;
-        case Cruise_State_e::CRUISING_TO_DESTINATION:
-            cout << "On cruise to " << cruise_destination->get_name() << endl;
-            break;
-        case Cruise_State_e::DOCKED_SIGHTSEEING: // Drop-through
-        case Cruise_State_e::REFUELING:
-        case Cruise_State_e::LEAVING_ISLAND:
-            cout << "Waiting during cruise at " << cruise_destination->get_name() << endl;
-            break;
-        default:
-            cout << default_switch_error_c << endl;
-            break;
-    }
-}
-
-// Start moving to a destination position at a speed
-void Cruise_ship::set_destination_position_and_speed(Point destination_position, double speed) {
-    if(cruise_state != Cruise_State_e::NOT_CRUISING) {
-        cancel_cruise();
-    }
-    Ship::set_destination_position_and_speed(destination_position, speed);
-    
-    vector<shared_ptr<Island>> all_islands = Model::get_instance().get_islands();
-    auto possible_island_it = find_if(all_islands.begin(), all_islands.end(),
-                            [&destination_position](shared_ptr<Island> island_ptr)
-                                   { return island_ptr->get_location() == destination_position; });
-    if(possible_island_it != all_islands.end()) {
-        for(auto islands_it = islands.begin(); islands_it != islands.end(); ++islands_it) {
-            if((*islands_it)->get_name() == (*possible_island_it)->get_name()) {
-                islands.erase(islands_it);
-                break;
-            }
+    if (is_in_cruise()) {
+        if (is_moving()) {
+            cout << "On cruise to " << next_island_ptr->get_name();
+        } else if (is_docked()){
+            cout <<  "Waiting during cruise at " << get_docked_Island()->get_name();
         }
-        first_destination = cruise_destination = *possible_island_it;
-        cruise_state = Cruise_State_e::CRUISING_TO_DESTINATION;
-        cruise_speed = speed;
-        cout << get_name() << " will visit " << cruise_destination->get_name() << endl;
-        cout << get_name() << " cruise will start and end at " << cruise_destination->get_name() << endl;
+        cout << endl;
     }
 }
 
-// Start moving on a course and speed
-void Cruise_ship::set_course_and_speed(double course, double speed) {
-    if(cruise_state != Cruise_State_e::NOT_CRUISING) {
-        cancel_cruise();
-    }
-    Ship::set_course_and_speed(course, speed);
-    cruise_speed = speed;
+
+
+///Private
+
+void Cruise_ship::cancel_cruise(){
+    cout << get_name() << " canceling current cruise" << endl;
+    reset_cruise_state();
 }
 
-// Stop moving
-void Cruise_ship::stop() {
-    cruise_state = Cruise_State_e::NOT_CRUISING;
-    Ship::stop();
+
+void Cruise_ship::reset_cruise_state(){
+    visited_islands.clear();
+    start_island_ptr.reset();
+    next_island_ptr.reset();
+    cruise_speed = 0.;
+    dock_action = Dock_action_e::NO_STATE;
 }
 
-void Cruise_ship::receive_hit(int hit_force, shared_ptr<Ship> attacker_ptr) {
-    Ship::receive_hit(hit_force, attacker_ptr);
-    attacker_ptr->respond_to_attack(static_pointer_cast<Cruise_ship>(shared_from_this()));
+bool Cruise_ship::is_in_cruise() const{
+    //If there is a starting island for the cruise, we know we are in a cruise
+    return static_cast<bool>(start_island_ptr);
 }

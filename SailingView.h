@@ -16,8 +16,11 @@ public:
     // Remove a Ship from the View
     void update_remove(const std::string& name) override;
     
+    // Update ship course
+    void update_course(const std::string& name, double course_) override;
+    
     // Update ship speed
-    void update_course_and_speed(const std::string& name, double course_, double speed_) override;
+    void update_speed(const std::string& name, double speed_) override;
     
 private:
     // Struct containing all data needed for SailingView

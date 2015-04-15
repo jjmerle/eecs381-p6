@@ -15,10 +15,10 @@ public:
     void update_remove(const std::string& name_) override;
     
     // Update ship heading
-    void update_course_and_speed(const std::string& name_, double course_, double) override;
+    void update_course(const std::string& name_, double course_) override;
 private:
     // Print the top of the map
-    void print_map_heading() const override;
+    void print_map_heading() override;
     // Get x, y coordinates and name/points to map
     std::map<std::string, Point> get_draw_info() const override;
     // Get empty space from derived class
@@ -29,9 +29,9 @@ private:
     int get_second_dimension_size() const override { return 3; } // TODO - magic constant
     
     // Locations of all Sim_objects in the simulation
-    std::map<std::string, Point> object_locations;
     std::string name;
     bool is_afloat;
+    std::map<std::string, Point> object_locations;
     Point ownship_location;
     double heading;
 };

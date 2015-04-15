@@ -40,7 +40,7 @@ map<string, Point> BridgeView::get_draw_info() const {
     return points_to_plot;
 }
 
-void BridgeView::print_map_heading() const {
+void BridgeView::print_map_heading() {
     cout << "Bridge view from " << name;
     if(is_afloat) {
         cout << " position " << ownship_location << " heading " << heading;
@@ -66,7 +66,7 @@ void BridgeView::update_remove(const string& name_) {
 }
 
 // Update ship heading
-void BridgeView::update_course_and_speed(const string& name_, double course_, double) {
+void BridgeView::update_course(const string& name_, double course_) {
     if(name == name_) {
         heading = course_;
     }

@@ -25,6 +25,6 @@ void ObjectView::update_remove(const std::string& name_) {
     object_locations.erase(name_);
 }
 
-void ObjectView::print_map_heading() const {
+void ObjectView::print_map_heading() {
     cout << "ObjectView for Object " << name << " at location " << (*object_locations.find(name)).second << endl;
 }

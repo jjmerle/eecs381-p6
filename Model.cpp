@@ -148,12 +148,6 @@ void Model::remove_ship(shared_ptr<Ship> ship_ptr){
     sim_objects.erase(ship_ptr);
 }
 
-
-
-void Model::draw(){
-    for_each(view_ptrs.begin(), view_ptrs.end(), mem_fn(&View::draw));
-}
-
 //MITCH: SHOULD THIS BE IN CRUISE SHIP? IDK
 shared_ptr<Island> Model::get_island_at(Point point){
     auto islands_it = find_if(islands.begin(), islands.end(), [point] (const Imap_t::value_type & island_name_ptr_pair){

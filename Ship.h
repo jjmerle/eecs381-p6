@@ -94,8 +94,8 @@ virtual void stop_attack();
 // interactions with other objects
 // receive a hit from an attacker
 virtual void receive_hit(int hit_force, std::shared_ptr<Ship> attacker_ptr);
-virtual void receive_hit(int hit_force, std::shared_ptr<Cruiser> attacker_ptr) = 0;
-virtual void receive_hit(int hit_force, std::shared_ptr<Pirate_ship> attacker_ptr) = 0;
+virtual void receive_hit(int hit_force, std::shared_ptr<Cruiser> attacker_ptr) {}; // TODO - make pure virtual
+virtual void receive_hit(int hit_force, std::shared_ptr<Pirate_ship> attacker_ptr) {};
 
 // disallow copy/move, construction or assignment
 Ship(const Ship &) = delete;

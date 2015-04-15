@@ -31,7 +31,7 @@ public:
 private:
     // Templated Design Interface functions
     // Print the top of the map
-    void print_map_heading() const override;
+    void print_map_heading() override;
     // Get x, y coordinates and name/points to map
     std::map<std::string, Point> get_draw_info() const override { return object_locations; }
     

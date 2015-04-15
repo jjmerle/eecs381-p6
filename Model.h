@@ -88,9 +88,6 @@ public:
     //Will return a pointer to the island if that position is an island. nullptr otherwise
     std::shared_ptr<Island> get_island_at(Point p);
     
-    //Will draw all views
-    void draw();
-    
     // disallow copy/move construction or assignment
     Model(const Model &) = delete;
     Model(Model &&) = delete;
